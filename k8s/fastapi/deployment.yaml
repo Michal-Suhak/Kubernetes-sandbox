@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-app
+  namespace: fastapi-app
+spec:
+  # replicas: 2  # Managed by HPA - do not set manually
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      initContainers:
+        - name: vault-placeholder
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - echo "Vault connection will be added later"
+      containers:
+        - name: fastapi
+          image: fastapi-app:v1
+          imagePullPolicy: Never  # Use local image from minikube
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: fastapi-config
+            - secretRef:
+                name: fastapi-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe: # Don't route traffic until ready
+            httpGet:
+              path: /db-health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 512Mi
+              cpu: 500m
