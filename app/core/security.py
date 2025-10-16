@@ -1,6 +1,3 @@
-"""
-Security utilities - Password hashing and verification
-"""
 import bcrypt
 
 

@@ -1,6 +1,3 @@
-"""
-CRUD operations for User model
-"""
 from sqlalchemy.orm import Session
 from typing import Optional
 

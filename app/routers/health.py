@@ -1,6 +1,3 @@
-"""
-Health check and monitoring endpoints
-"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text

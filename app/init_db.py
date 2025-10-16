@@ -1,8 +1,3 @@
-"""
-Database initialization script
-
-Run this once to create all tables in the database.
-"""
 from app.database import engine
 from app.models import Base
 
