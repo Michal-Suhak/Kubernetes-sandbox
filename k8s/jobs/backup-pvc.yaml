@@ -5,7 +5,7 @@ metadata:
   namespace: fastapi-app
 spec:
   accessModes:
-    - ReadWriteOnce  # Jeden pod naraz (OK dla Minikube)
+    - ReadWriteMany
   resources:
     requests:
       storage: 5Gi

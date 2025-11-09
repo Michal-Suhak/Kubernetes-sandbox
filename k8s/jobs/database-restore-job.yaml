@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-restore
+  namespace: fastapi-app
+spec:
+  template:
+    metadata:
+      labels:
+        app: fastapi  # Use same label to inherit NetworkPolicy rules
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: restore
+        image: postgres:16-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Available backups:"
+          ls -lh /backup/
+
+          # Use latest backup or specify one
+          BACKUP_FILE="${BACKUP_FILE:-/backup/backup-20251109-212917.sql}"
+
+          echo "Restoring from $BACKUP_FILE..."
+          if [ -f "$BACKUP_FILE" ]; then
+            psql -h postgres-service -U fastapi_user -d fastapi_db < "$BACKUP_FILE"
+
+            if [ $? -eq 0 ]; then
+              echo "Restore completed successfully!"
+            else
+              echo "Restore failed!"
+              exit 1
+            fi
+          else
+            echo "Backup file not found: $BACKUP_FILE"
+            exit 1
+          fi
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /backup
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: backup-pvc

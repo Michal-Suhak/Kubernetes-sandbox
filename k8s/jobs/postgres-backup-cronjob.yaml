@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup-daily
+  namespace: fastapi-app
+spec:
+  schedule: "0 2 * * *"  # Everyday at 2:00 AM
+  successfulJobsHistoryLimit: 7  # Last 7 sucess jobs
+  failedJobsHistoryLimit: 3      # Last 3 fail jobs
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: fastapi  # Use same label to inherit NetworkPolicy rules
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:16-alpine
+            command: ["/bin/sh"]
+            # TODO: add minio backup
+            args:
+            - -c
+            - |
+              BACKUP_FILE="/backup/backup-$(date +%Y%m%d-%H%M%S).sql"
+              echo "Starting backup to $BACKUP_FILE..."
+              pg_dump -h postgres-service -U fastapi_user -d fastapi_db > "$BACKUP_FILE"
+
+              if [ $? -eq 0 ]; then
+                echo "✅ Backup completed successfully!"
+                echo "File size: $(du -h $BACKUP_FILE | cut -f1)"
+
+                # Cleanup starych backupów (starszych niż 7 dni)
+                find /backup -name "backup-*.sql" -mtime +7 -delete
+                echo "Cleaned up old backups"
+              else
+                echo "❌ Backup failed!"
+                exit 1
+              fi
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc

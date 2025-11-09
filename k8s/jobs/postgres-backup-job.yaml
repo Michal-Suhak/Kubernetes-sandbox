@@ -5,6 +5,9 @@ metadata:
   namespace: fastapi-app
 spec:
   template:
+    metadata:
+      labels:
+        app: fastapi  # Use same label to inherit NetworkPolicy rules
     spec:
       restartPolicy: OnFailure
       containers:
@@ -18,9 +21,12 @@ spec:
               pg_dump -h postgres-service -U fastapi_user -d fastapi_db > /backup/backup-$(date +%Y%m%d-%H%M%S).sql
               echo "Backup completed!"
               ls -lh /backup/
-          envFrom:
-            - secretRef:
-                name: postgres-secret
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
           volumeMounts:
             - name: backup-storage
               mountPath: /backup
