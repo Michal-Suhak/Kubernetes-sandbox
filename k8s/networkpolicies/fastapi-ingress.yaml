@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: fastapi-allow-ingress
+  namespace: fastapi-app
+spec:
+  podSelector:
+    matchLabels:
+      app: fastapi
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx  # Only Ingress Controller
+    ports:
+    - protocol: TCP
+      port: 8000
