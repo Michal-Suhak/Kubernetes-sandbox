@@ -7,12 +7,6 @@ version: 0.1.0
 
 appVersion: "1.0.0"
 
-dependencies:
-  - name: postgresql
-    version: "12.x.x"
-    repository: "https://charts.bitnami.com/bitnami"
-    condition: postgresql.enabled
-
 icon: https://fastapi.tiangolo.com/img/icon-white.svg
 home: https://github.com/Michal-Suhak/kubernetes-sandbox
 sources:

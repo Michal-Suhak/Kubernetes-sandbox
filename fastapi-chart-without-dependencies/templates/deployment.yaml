@@ -18,9 +18,6 @@ spec:
         image: "{{ .Values.fastapi.image.repository }}:{{ .Values.fastapi.image.tag }}"
         imagePullPolicy: {{ .Values.fastapi.image.pullPolicy }}
         ports:
-          - containerPort: {{ .Values.fastapi.service.port }}
-        env:
-          - name: DATABASE_URL
-            value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+        - containerPort: {{ .Values.fastapi.service.port }}
         resources:
           {{- toYaml .Values.fastapi.resources | nindent 12 }}

@@ -1,6 +1,6 @@
 # FastAPI Configuration
 fastapi:
-  replicaCount: 2
+  replicaCount: 3
   image:
     repository: fastapi-app
     tag: "v3"
@@ -20,20 +20,18 @@ fastapi:
     host: fastapi.local
 
 # PostgreSQL Configuration
-postgresql:
-  enabled: true
-  auth:
-    username: fastapi_user
-    database: fastapi_db
-    existingSecret: "postgres-secret"
-    secretKeys:
-      adminPasswordKey: "POSTGRES_PASSWORD"
-      userPasswordKey: "POSTGRES_PASSWORD"
-  primary:
-    persistence:
-      enabled: true
-      size: 1Gi
-      storageClass: standard
+postgres:
+  existingSecret: "postgres-secret"
+  existingSecretPasswordKey: "POSTGRES_PASSWORD"
+
+  image:
+    repository: postgres
+    tag: "16-alpine"
+  storage:
+    size: 1Gi
+  database: "fastapi_db"
+  user: "fastapi_user"
+  password: "changeme"  # W produkcji: użyj --set lub secrets
 
 # Namespace
 namespace: fastapi-app
