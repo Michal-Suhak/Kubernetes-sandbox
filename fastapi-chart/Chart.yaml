@@ -1,0 +1,16 @@
+apiVersion: v2
+name: fastapi-chart
+description: A Helm chart for FastAPI + PostgreSQL application
+type: application
+
+version: 0.1.0
+
+appVersion: "1.0.0"
+
+icon: https://fastapi.tiangolo.com/img/icon-white.svg
+home: https://github.com/Michal-Suhak/kubernetes-sandbox
+sources:
+  - https://github.com/Michal-Suhak/kubernetes-sandbox
+maintainers:
+  - name: Michał
+    email: michal.suhak@gmail.com

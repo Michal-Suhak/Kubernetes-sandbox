@@ -1,0 +1,20 @@
+✅ FastAPI application deployed successfully!
+
+To access your application:
+
+{{- if .Values.fastapi.ingress.enabled }}
+1. Add to /etc/hosts:
+   echo "$(minikube ip) {{ .Values.fastapi.ingress.host }}" | sudo tee -a /etc/hosts
+
+2. Visit:
+   http://{{ .Values.fastapi.ingress.host }}/
+{{- else }}
+1. Get the application URL:
+   minikube service {{ .Release.Name }}-fastapi -n {{ .Values.namespace }}
+{{- end }}
+
+To check pod status:
+  kubectl get pods -n {{ .Values.namespace }} -l app=fastapi
+
+To view logs:
+  kubectl logs -f deployment/{{ .Release.Name }}-fastapi -n {{ .Values.namespace }}
