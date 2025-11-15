@@ -28,6 +28,9 @@ postgres:
     registry: docker.io
     repository: postgres
     tag: "16-alpine"
+  service:
+    type: ClusterIP
+    port: 5432
   storage:
     size: 1Gi
   database: "fastapi_db"

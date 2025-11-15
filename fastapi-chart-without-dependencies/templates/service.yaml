@@ -4,9 +4,9 @@ metadata:
   name: {{ .Release.Name }}-postgres-service
   namespace: {{ .Values.namespace }}
 spec:
-  type: ClusterIP   # Internal only, not exposed outside cluster
+  type: {{ .Values.postgres.service.type }}
   selector:
     app: postgres
   ports:
-    - port: 5432
-      targetPort: 5432
+    - port: {{ .Values.postgres.service.port }}
+      targetPort: {{ .Values.postgres.service.port }}
