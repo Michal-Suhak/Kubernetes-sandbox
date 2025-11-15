@@ -3,7 +3,7 @@ fastapi:
   replicaCount: 2
   image:
     repository: fastapi-app
-    tag: "v3"
+    tag: "v4"
     pullPolicy: Never
   service:
     type: LoadBalancer
