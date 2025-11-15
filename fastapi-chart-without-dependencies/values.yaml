@@ -1,6 +1,6 @@
 # FastAPI Configuration
 fastapi:
-  replicaCount: 3
+  replicaCount: 2
   image:
     repository: fastapi-app
     tag: "v3"
@@ -25,6 +25,7 @@ postgres:
   existingSecretPasswordKey: "POSTGRES_PASSWORD"
 
   image:
+    registry: docker.io
     repository: postgres
     tag: "16-alpine"
   storage:

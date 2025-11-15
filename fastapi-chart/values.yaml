@@ -22,6 +22,10 @@ fastapi:
 # PostgreSQL Configuration
 postgresql:
   enabled: true
+  image:
+      registry: docker.io
+      repository: postgres
+      tag: "16-alpine"
   auth:
     username: fastapi_user
     database: fastapi_db

@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: fastapi-app
+  namespace: {{ .Values.namespace }}
 spec:
-  serviceName: postgres-service
+  serviceName: {{ .Release.Name }}-postgres-service
   replicas: 1
   selector:
     matchLabels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          image: {{ .Values.postgres.image.registry }}/{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}
           ports:
             - containerPort: 5432
           envFrom:
