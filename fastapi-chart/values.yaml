@@ -46,6 +46,21 @@ kube-prometheus-stack:
     service:
       type: LoadBalancer
       port: 3000
+  prometheus:
+    service:
+      type: LoadBalancer
+      port: 9090
+
+# Monitoring Configuration for FastAPI metrics scraping
+monitoring:
+  serviceMonitor:
+    enabled: true
+    prometheusRelease: my-fastapi-app  # Must match your Helm release name
+    portName: http
+    path: /metrics
+    interval: 15s
+    scrapeTimeout: 10s
+    labels: {}  # Additional custom labels if needed
 
 # Namespace
 namespace: fastapi-app

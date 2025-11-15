@@ -3,10 +3,13 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-fastapi-service
   namespace: {{ .Values.namespace }}
+  labels:
+    app: fastapi
 spec:
   type: {{ .Values.fastapi.service.type }}
   selector:
     app: fastapi
   ports:
-    - port: {{ .Values.fastapi.service.port }}
+    - name: http
+      port: {{ .Values.fastapi.service.port }}
       targetPort: {{ .Values.fastapi.service.port }}
