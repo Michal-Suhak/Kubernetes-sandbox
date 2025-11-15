@@ -39,5 +39,13 @@ postgresql:
       size: 1Gi
       storageClass: standard
 
+# Monitoring Configuration (Prometheus + Grafana)
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    service:
+      type: LoadBalancer
+      port: 3000
+
 # Namespace
 namespace: fastapi-app

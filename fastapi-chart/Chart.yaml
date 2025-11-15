@@ -12,6 +12,10 @@ dependencies:
     version: "12.x.x"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
+  - name: kube-prometheus-stack
+    version: "79.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: kube-prometheus-stack.enabled
 
 icon: https://fastapi.tiangolo.com/img/icon-white.svg
 home: https://github.com/Michal-Suhak/kubernetes-sandbox

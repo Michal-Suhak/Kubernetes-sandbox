@@ -1,0 +1,7 @@
+# Custom values for kube-prometheus-stack
+# Override Grafana service type to LoadBalancer for minikube tunnel access
+
+grafana:
+  service:
+    type: LoadBalancer
+    port: 3000
