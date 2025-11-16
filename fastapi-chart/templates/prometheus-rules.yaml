@@ -2,82 +2,82 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ .Release.Name }}-fastapi-alerts
+  name: {{ include "app.serviceName" . }}-alerts
   namespace: {{ .Values.namespace }}
   labels:
-    release: {{ .Release.Name }}
-    app: fastapi
+    {{- include "app.labels" . | nindent 4 }}
+    release: {{ include "app.prometheusRelease" . }}
 spec:
   groups:
-  - name: fastapi-alerts
+  - name: {{ .Values.app.name }}-alerts
     interval: 30s
     rules:
     # High error rate alert
-    - alert: FastAPIHighErrorRate
+    - alert: {{ .Values.app.name | title }}HighErrorRate
       expr: |
         (
-          sum(rate(fastapi_requests_total{status=~"5..", namespace="{{ .Values.namespace }}"}[5m]))
+          sum(rate({{ .Values.app.name }}_requests_total{status=~"5..", namespace="{{ .Values.namespace }}"}[5m]))
           /
-          sum(rate(fastapi_requests_total{namespace="{{ .Values.namespace }}"}[5m]))
-        ) > 0.05
+          sum(rate({{ .Values.app.name }}_requests_total{namespace="{{ .Values.namespace }}"}[5m]))
+        ) > {{ .Values.monitoring.alerts.thresholds.errorRate }}
       for: 2m
       labels:
         severity: warning
-        component: fastapi
+        component: {{ .Values.app.name }}
       annotations:
-        summary: "High error rate detected in FastAPI"
-        description: "FastAPI error rate is {{ "{{" }} $value | humanizePercentage {{ "}}" }} (threshold: 5%)"
+        summary: "High error rate detected in {{ .Values.app.name }}"
+        description: "{{ .Values.app.name }} error rate is {{ "{{" }} $value | humanizePercentage {{ "}}" }} (threshold: {{ .Values.monitoring.alerts.thresholds.errorRate | mul 100 }}%)"
 
     # High latency alert
-    - alert: FastAPIHighLatency
+    - alert: {{ .Values.app.name | title }}HighLatency
       expr: |
         histogram_quantile(0.95,
-          sum(rate(fastapi_request_duration_seconds_bucket{namespace="{{ .Values.namespace }}"}[5m])) by (le, exported_endpoint)
-        ) > 1
+          sum(rate({{ .Values.app.name }}_request_duration_seconds_bucket{namespace="{{ .Values.namespace }}"}[5m])) by (le, exported_endpoint)
+        ) > {{ .Values.monitoring.alerts.thresholds.latencySeconds }}
       for: 5m
       labels:
         severity: warning
-        component: fastapi
+        component: {{ .Values.app.name }}
       annotations:
-        summary: "High latency detected in FastAPI"
+        summary: "High latency detected in {{ .Values.app.name }}"
         description: "95th percentile latency is {{ "{{" }} $value {{ "}}" }}s on endpoint {{ "{{" }} $labels.exported_endpoint {{ "}}" }}"
 
     # Service down alert
-    - alert: FastAPIServiceDown
+    - alert: {{ .Values.app.name | title }}ServiceDown
       expr: |
-        up{job="my-fastapi-app-fastapi-service", namespace="{{ .Values.namespace }}"} == 0
+        up{job="{{ include "app.serviceName" . }}", namespace="{{ .Values.namespace }}"} == 0
       for: 1m
       labels:
         severity: critical
-        component: fastapi
+        component: {{ .Values.app.name }}
       annotations:
-        summary: "FastAPI service is down"
-        description: "FastAPI service {{ "{{" }} $labels.instance {{ "}}" }} is unreachable"
+        summary: "{{ .Values.app.name }} service is down"
+        description: "{{ .Values.app.name }} service {{ "{{" }} $labels.instance {{ "}}" }} is unreachable"
 
     # Low request rate (might indicate issue)
-    - alert: FastAPILowTraffic
+    - alert: {{ .Values.app.name | title }}LowTraffic
       expr: |
-        sum(rate(fastapi_requests_total{namespace="{{ .Values.namespace }}"}[5m])) < 0.01
+        sum(rate({{ .Values.app.name }}_requests_total{namespace="{{ .Values.namespace }}"}[5m])) < {{ .Values.monitoring.alerts.thresholds.lowTrafficRate }}
       for: 10m
       labels:
         severity: info
-        component: fastapi
+        component: {{ .Values.app.name }}
       annotations:
-        summary: "Unusually low traffic to FastAPI"
+        summary: "Unusually low traffic to {{ .Values.app.name }}"
         description: "Request rate is {{ "{{" }} $value {{ "}}" }} req/s (might indicate an issue)"
 
     # High memory usage
-    - alert: FastAPIHighMemory
+    - alert: {{ .Values.app.name | title }}HighMemory
       expr: |
-        container_memory_usage_bytes{namespace="{{ .Values.namespace }}", pod=~".*fastapi.*"}
+        container_memory_usage_bytes{namespace="{{ .Values.namespace }}", pod=~".*{{ .Values.app.name }}.*"}
         /
-        container_spec_memory_limit_bytes{namespace="{{ .Values.namespace }}", pod=~".*fastapi.*"}
-        > 0.9
+        container_spec_memory_limit_bytes{namespace="{{ .Values.namespace }}", pod=~".*{{ .Values.app.name }}.*"}
+        > {{ .Values.monitoring.alerts.thresholds.memoryPercent }}
       for: 5m
       labels:
         severity: warning
-        component: fastapi
+        component: {{ .Values.app.name }}
       annotations:
-        summary: "FastAPI pod using high memory"
+        summary: "{{ .Values.app.name }} pod using high memory"
         description: "Pod {{ "{{" }} $labels.pod {{ "}}" }} is using {{ "{{" }} $value | humanizePercentage {{ "}}" }} of memory limit"
 {{- end }}

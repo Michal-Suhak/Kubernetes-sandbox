@@ -2,23 +2,18 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-fastapi-metrics
+  name: {{ include "app.serviceName" . }}-metrics
   namespace: {{ .Values.namespace }}
   labels:
-    app: fastapi
-    release: {{ .Values.monitoring.serviceMonitor.prometheusRelease }}
-    {{- with .Values.monitoring.serviceMonitor.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- include "app.labels" . | nindent 4 }}
+    release: {{ include "app.prometheusRelease" . }}
 spec:
   selector:
     matchLabels:
-      app: fastapi
+      {{- include "app.selectorLabels" . | nindent 6 }}
   endpoints:
-  - port: {{ .Values.monitoring.serviceMonitor.portName }}
-    path: {{ .Values.monitoring.serviceMonitor.path }}
+  - port: {{ .Values.monitoring.metrics.port }}
+    path: {{ .Values.monitoring.metrics.path }}
     interval: {{ .Values.monitoring.serviceMonitor.interval }}
-    {{- with .Values.monitoring.serviceMonitor.scrapeTimeout }}
-    scrapeTimeout: {{ . }}
-    {{- end }}
+    scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
 {{- end }}

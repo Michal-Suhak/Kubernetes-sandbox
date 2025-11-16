@@ -1,13 +1,20 @@
-# FastAPI Configuration
-fastapi:
+app:
+  name: fastapi  # Change to: django, flask, nodejs, etc.
+  type: python   # Application type (python, nodejs, java, go, etc.)
+
+# Deployment configuration
+deployment:
   replicaCount: 2
   image:
-    repository: fastapi-app
+    repository: fastapi-app  # Your application image
     tag: "v4"
     pullPolicy: Never
-  service:
-    type: LoadBalancer
-    port: 8000
+
+  # Container configuration
+  container:
+    port: 8000  # Application listening port
+
+  # Resource limits
   resources:
     requests:
       memory: "256Mi"
@@ -15,20 +22,41 @@ fastapi:
     limits:
       memory: "512Mi"
       cpu: "500m"
-  ingress:
-    enabled: true
-    host: fastapi.local
 
-# PostgreSQL Configuration
+  env: []
+  # Example:
+  # env:
+  #   - name: ENV_VAR_NAME
+  #     value: "value"
+  #   - name: SECRET_VAR
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: my-secret
+  #         key: password
+
+# Service configuration
+service:
+  type: LoadBalancer
+  port: 8000
+  targetPort: 8000
+
+# Ingress configuration
+ingress:
+  enabled: true
+  host: fastapi.local  # Change to your domain
+  annotations: {}
+  tls: []
+
+# PostgreSQL (via Bitnami dependency)
 postgresql:
   enabled: true
   image:
-      registry: docker.io
-      repository: postgres
-      tag: "16-alpine"
+    registry: docker.io
+    repository: postgres
+    tag: "16-alpine"
   auth:
-    username: fastapi_user
-    database: fastapi_db
+    username: app_user  # Generic username
+    database: app_db    # Generic database name
     existingSecret: "postgres-secret"
     secretKeys:
       adminPasswordKey: "POSTGRES_PASSWORD"
@@ -39,14 +67,13 @@ postgresql:
       size: 1Gi
       storageClass: standard
 
-# Monitoring Configuration (Prometheus + Grafana)
+# Prometheus & Grafana stack
 kube-prometheus-stack:
   enabled: true
   grafana:
     service:
       type: LoadBalancer
       port: 3000
-    # Grafana sidecar watches for ConfigMaps with special label to dynamicly load dashboards
     sidecar:
       dashboards:
         enabled: true
@@ -72,21 +99,52 @@ kube-prometheus-stack:
         receiver: 'default'
       receivers:
       - name: 'default'
-        # Add notification methods here (email, slack, etc.)
+        # Add notification methods (email, slack, etc.)
 
-# Monitoring Configuration for FastAPI metrics scraping
+# Application monitoring
 monitoring:
+  # Metrics endpoint configuration
+  metrics:
+    enabled: true
+    path: /metrics  # Prometheus metrics endpoint
+    port: http      # Service port name
+
+  # ServiceMonitor for Prometheus scraping
   serviceMonitor:
     enabled: true
-    prometheusRelease: my-fastapi-app  # Must match your Helm release name
-    portName: http
-    path: /metrics
     interval: 15s
     scrapeTimeout: 10s
-    labels: {}  # Additional custom labels if needed
-  dashboards:
-    enabled: true  # Auto-load dashboards from dashboards/ directory
-  alerts:
-    enabled: true  # Enable Prometheus alert rules
 
-namespace: fastapi-app
+  # Grafana dashboards
+  dashboards:
+    enabled: true
+
+  # Prometheus alerts
+  alerts:
+    enabled: true
+    # Alert thresholds
+    thresholds:
+      errorRate: 0.05        # 5% error rate
+      latencySeconds: 1      # 1 second p95 latency
+      memoryPercent: 0.9     # 90% memory usage
+      lowTrafficRate: 0.01   # 0.01 req/s minimum
+
+# Namespace
+namespace: fastapi-app  # Change to match your app
+
+# Service Account
+serviceAccount:
+  create: true
+  name: ""  # Auto-generated if empty
+
+# RBAC
+rbac:
+  create: true
+
+# HPA (Horizontal Pod Autoscaler)
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

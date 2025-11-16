@@ -1,26 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-fastapi
+  name: {{ include "app.deploymentName" . }}
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.fastapi.replicaCount }}
+  replicas: {{ .Values.deployment.replicaCount }}
   selector:
     matchLabels:
-      app: fastapi
+      {{- include "app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: fastapi
+        {{- include "app.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "app.serviceAccountName" . }}
       containers:
-      - name: fastapi
-        image: "{{ .Values.fastapi.image.repository }}:{{ .Values.fastapi.image.tag }}"
-        imagePullPolicy: {{ .Values.fastapi.image.pullPolicy }}
+      - name: {{ .Values.app.name }}
+        image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         ports:
-          - containerPort: {{ .Values.fastapi.service.port }}
+          - name: http
+            containerPort: {{ .Values.deployment.container.port }}
+            protocol: TCP
+        {{- if .Values.deployment.env }}
         env:
-          - name: DATABASE_URL
-            value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+          {{- toYaml .Values.deployment.env | nindent 10 }}
+        {{- end }}
         resources:
-          {{- toYaml .Values.fastapi.resources | nindent 12 }}
+          {{- toYaml .Values.deployment.resources | nindent 12 }}
