@@ -46,6 +46,13 @@ kube-prometheus-stack:
     service:
       type: LoadBalancer
       port: 3000
+    # Grafana sidecar watches for ConfigMaps with special label to dynamicly load dashboards
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
   prometheus:
     service:
       type: LoadBalancer
@@ -61,6 +68,7 @@ monitoring:
     interval: 15s
     scrapeTimeout: 10s
     labels: {}  # Additional custom labels if needed
+  dashboards:
+    enabled: true  # Auto-load dashboards from dashboards/ directory
 
-# Namespace
 namespace: fastapi-app
