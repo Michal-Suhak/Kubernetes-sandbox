@@ -57,6 +57,22 @@ kube-prometheus-stack:
     service:
       type: LoadBalancer
       port: 9090
+  alertmanager:
+    service:
+      type: LoadBalancer
+      port: 9093
+    config:
+      global:
+        resolve_timeout: 5m
+      route:
+        group_by: ['alertname', 'cluster', 'service']
+        group_wait: 10s
+        group_interval: 10s
+        repeat_interval: 12h
+        receiver: 'default'
+      receivers:
+      - name: 'default'
+        # Add notification methods here (email, slack, etc.)
 
 # Monitoring Configuration for FastAPI metrics scraping
 monitoring:
@@ -70,5 +86,7 @@ monitoring:
     labels: {}  # Additional custom labels if needed
   dashboards:
     enabled: true  # Auto-load dashboards from dashboards/ directory
+  alerts:
+    enabled: true  # Enable Prometheus alert rules
 
 namespace: fastapi-app
